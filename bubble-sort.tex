@@ -1,0 +1,199 @@
+\documentclass{jsarticle}
+\usepackage{listings}
+\usepackage{plistings}
+\usepackage{amsmath}
+\usepackage[bxutf8]{inputenc}
+\usepackage{bxbase}
+\usepackage{otf}
+\begin{document}
+\title{バブルソートの改良アルゴリズムの正当性証明}
+\author{廣瀬佳典}
+\date{2020/7/4}
+\maketitle
+この記事では、バブルソートとその改良アルゴリズムを定義した上で、そのアルゴリズムの正当性を証明するものである。
+
+\section{最小値を求める}
+要素数が $n \ne 0$ の配列 $A_{1}, ..., A_{n}$ の最小値を求めるアルゴリズムは以下のとおりである。
+
+\lstset{
+    frame=single,
+    numbers=left,
+    tabsize=2
+}
+
+\def\assign{~\texttt{:=}~}
+
+\begin{lstlisting}[mathescape]
+$x \assign A_1$
+for integer $i$ from $2$ to $n$:
+    if $x > A_i$:
+        $x \assign A_i$
+print $x$
+\end{lstlisting}
+
+これは次のように書き換えることができる。
+
+\begin{lstlisting}[mathescape]
+$x_1 \assign A_1$
+for integer $i$ from $2$ to $n$:
+    if $x_{i-1} > A_i$:
+        $x_i \assign A_i$
+    else:
+        $x_i \assign x_{i-1}$
+print $x_n$
+\end{lstlisting}
+
+[証明]
+
+各 $i$ について $x_i \in \{ A_1, ..., A_i \}$ であるので
+$x_n \in \{ A_1, ..., A_n \}$ 。
+また、 $y \in \{ A_1, ..., A_i \}$ について $x_i \le y$ であるので
+$y \in \{ A_1, ..., A_n \}$ について $x_i \le y$ である。
+従って、 $x_n = \min ( A_1, ..., A_n )$ 。
+
+\section{並べ替え}
+
+ここでは、ソートにおいて重要な概念である並べ替えについて定義する。並べ替えの概念は、配列が重複を持つ場合があるので必要となる。配列が重複を持たない場合は配列の集合が一致することが並べ替えであることの必要十分条件となる。
+
+\subsection{入れ替え}
+
+長さが $n \ge 2$ の配列 $A_1, ..., A_n$ について配列 $B_1, ..., B_n$ が次の性質を満たすならば、 $B_1, ..., B_n$ は $A_1, ..., A_n$ の入れ替えであるとする:
+
+\begin{eqnarray}
+ある２つの整数 i, j (1 \le i < j \le n) と任意の整数 k について、 \\
+B_i = A_j, \\
+B_j = A_i, \\
+k \ne i ~\texttt{and}~ k \ne j \Longrightarrow B_k = A_k.
+\end{eqnarray}
+
+\subsection{並べ替え}
+
+配列 $B_1, ..., B_n$ が配列 $A_1, ..., A_n$ の並べ替えであるということは、 $B_1, ..., B_n$ が $A_1, ..., A_n$ に有限回入れ替えを行ったもののことを指す。
+
+\section{バブルソート}
+
+バブルソートの正当性について議論する。なお、ここではバブルソートの安定性については議論しない。
+
+\subsection{問題}
+
+要素数が $n \ge 2$ の配列 $A_1, ..., A_n$ について、
+次の性質を満たす配列 $B_1, ..., B_n$ を求めること:
+
+\begin{eqnarray}
+任意の正の整数 i, j について i < j \Longrightarrow B_i \le B_j, \\
+配列 B_1, ..., B_n は配列 A_1, ..., A_n の並べ替え.
+\end{eqnarray}
+
+ちなみにプログラムのソートにおいて配列長が $0$ または $1$ の場合は自明なので扱わないことにする。
+
+\subsection{バブルソートのステップ}
+
+配列長が $n$ の配列 $A_1, ..., A_n$ のバブルソートの
+ステップ $i$ は配列 $S_{i1}, ..., S_{in}$ と表記し、次の性質を満たすものとする:
+
+\begin{eqnarray}
+S_{ii} \le S_{i,i+1}, ..., S_{ii} \le S_{in}, \\
+任意の正の整数 j, k について j \le k \le i \Longrightarrow S_{ji} \le S_{ki}, \\
+配列 S_{i1}, ..., S_{in} は配列 A_1, ..., A_n の並び替え.
+\end{eqnarray}
+
+バブルソートのステップ $n-1$ においてはソートが完了していることに注意。
+
+\subsection{バブルソートのアルゴリズム}
+
+基本的なバブルソートは比較を $n(n - 1) / 2$ 回行う。
+
+\begin{lstlisting}[mathescape]
+$x_1, ..., x_n \assign A_1, ..., A_n$
+for $i$ from $1$ to $n - 1$:
+    for $j$ from $n - 1$ to $i$ step $-1$:
+        if $x_j$ > $x_{j + 1}$:
+            $x_j, x_{j + 1} \assign x_{j + 1}, x_j$
+$B_1, ..., B_n \assign x_1, ..., x_n$
+\end{lstlisting}
+
+これは次のように書き換えることができる。
+
+\begin{lstlisting}[mathescape]
+$S_0 \assign [ A_1, ..., A_n ]$
+for $i$ from $1$ to $n - 1$:
+    $[x_1, ..., x_n] \assign S_{i-1}$
+    for $j$ from $n - 1$ to $i$ step $-1$:
+        if $x_j > x_{j+1}$:
+            $x_j, x_{j+1} \assign x_{j+1}, x_j$
+    $S_i \assign [x_1, ..., x_n]$
+$B_1, ..., B_n \assign S_{n-1}$
+\end{lstlisting}
+
+このコードは、配列 $A_1, ..., A_n$ 、つまりステップ $0$ からステップ $n-1$ を
+計算している。ステップ $i - 1$ からステップ $i$ への計算を抜き出す。
+
+\begin{lstlisting}[mathescape]
+$[x_1, ..., x_n] \assign S_{i-1}$
+for $j$ from $n - 1$ to $i$ step $-1$:
+    if $x_j > x_{j+1}$:
+        $x_j, x_{j+1} \assign x_{j+1}, x_j ~\texttt{\#}~ 入れ替えが発生$
+$S_i \assign [x_1, ..., x_n]$
+\end{lstlisting}
+
+この計算によって $S_{i-1, i}, ..., S_{i-1, n}$ から
+$S_{ii}, ..., S_{in}$ への並び替えが発生し、
+$S_{ii} = \min (S_{i-1, i}, ..., S_{i-1, n})$ となる。
+
+[証明]
+
+$S_{ii} \ne \min (S_{i-1, i}, ..., S_{i-1, n}) = m$ とする。
+$S_{i-1, i} = m$ であった場合は
+$S_{i-1, i}$ と $S_{i-1, i+1}$ の入れ替えが発生しないので矛盾する。
+$S_{i-1, i} \ne m$ で $S_{i-1, i+1} = m$ の場合は
+$S_{i-1, i+1}$ と $S_{i-1, i+2}$ の入れ替えが発生せず
+$S_{i-1, i}$ と $S_{i-1, i+1}$ の入れ替えが発生するので矛盾する。
+$S_{i-1, i} \ne m$ かつ $S_{i-1, i+1} \ne m$ の場合でも
+ある正の整数 $j$ について $S_{i-1, j} = m$ となり、
+$S_{i-1, j-1}$ と $S_{i-1, j}$ の入れ替えが発生し、
+その後連続的に入れ替えが起こり
+$S_{i-1, i}$ と $S_{i-1, j}$ の入れ替えまでが発生するので矛盾する
+(入れ替えが途中で止まった場合は $S_{i-1, j}$ が止まったところの一つ手前も
+$m$ であるのでそこが $j$ となる)。
+境界的なケースにおいては場合分けしたケース自体が存在しない場合もあるが
+そのケースにおいてもすべての場合で矛盾することに変わりはない。
+従って $S_{ii} = \min (S_{i-1, i}, ..., S_{i-1, n})$ である。
+
+\section{バブルソートの改良アルゴリズム}
+
+バブルソートのステップ $i-1$ において、
+$S_{i-1, i} = \min (S_{i-1,i}, ..., S_{i-1, n})$ であった場合は
+$S_{i-1, i}$ は動くことがない。これと同様に
+ステップ $i$ の計算においてソートされていることが分かっていれば多くのステップを省略することができる。そこで次のアルゴリズムを導入する。
+
+\begin{lstlisting}[mathescape]
+$x_1, ..., x_n \assign A_1, ..., A_n$
+$i = 1$
+while $i < n$:
+    $i_{next} \assign n$
+    for $j$ from $n - 1$ to $i$ step $-1$:
+        if $x_j$ > $x_{j + 1}$:
+            $x_j, x_{j + 1} \assign x_{j + 1}, x_j ~\texttt{\#}~入れ替えが発生$
+            $i_{next} \assign j + 1$
+    $i \assign i_{next}$
+$B_1, ..., B_n \assign x_1, ..., x_n$
+\end{lstlisting}
+
+ステップ $i-1$ においてステップ $i$ を計算するとともに計算後の配列が
+どこまでソートされているかを $i_{next}$ で探索している。
+このアルゴリズムの正当性を示す。
+
+[証明]
+
+ステップ $i-1$ を考える。このアルゴリズムの $j$ ループの終わりまで到達した時、つまり８行目の終わりにおいて $x_j = \min (S_{i-1,j}, ..., S_{i-1,n})$ である。
+$j < k$ のときに入れ替えが発生しない場合、
+$1 \le l \le m \le k \Longrightarrow x_l \le x_m$ であり
+$k < l \le n \Longrightarrow x_k \le x_l$ であるので、
+ステップ $i$ の計算完了時にステップ $k = i_{next}$ であることも示される。
+
+\section*{謝辞}
+
+質問サイトteratailにおいて本アルゴリズムを教えてくださったLouiS0616様、hope\_mucci様、並びにteratailの皆様に感謝申し上げます。
+
+\end{document}
+
